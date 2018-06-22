@@ -3,10 +3,13 @@ from netCDF4 import Dataset as NetCDFFile
 import numpy as N
 import matplotlib.pyplot as plt
 import numpy.ma as ma
+import matplotlib.colors as colors
 
-mask=NetCDFFile('india_mask.nc','r')
-ind = mask.variables['MASK'][:,:]
-ind= ma.masked_where(ind<=0.0,ind)
+#mask=NetCDFFile('india_mask.nc','r')
+#ind = mask.variables['MASK'][:,:]
+#ind= ma.masked_where(ind<=0.0,ind)
+region=NetCDFFile('/global/project/projectdirs/m1602/datasets4.full/arbit_init_state_05x05.nc','r')
+ind = region.variables['REGION_MASK'][:,:]
 
 
 area=NetCDFFile('/scratch2/scratchdirs/tslin2/plot/globalcrop/data/gridareahalf.nc','r')
@@ -34,18 +37,23 @@ lat_new=N.flipud(latnc)
 
 
 isam=NetCDFFile('../../isam_rice_egu_m3_a.nc','r')
-grow = isam.variables['yieldisam'][96:103,:,:]
+#grow = isam.variables['yieldisam'][96:103,:,:]
 lonisam = isam.variables['lon'][:]
 latisam = isam.variables['lat'][:]
 ryield1 = isam.variables['yieldm3'][:,:]
 mearea=isam.variables['m3area'][:,:]
+#ryield=N.average(grow,axis=0)
+isam=NetCDFFile('../../isamhiscru_rice_aogsluh2flood3.nc','r')
+grow = isam.variables['yieldy'][96:103,:,:]
 ryield=N.average(grow,axis=0)
-
 
 
 mearea= ma.masked_where(mearea<=0.0,mearea)
 
+ryield= ma.masked_where(ryield<=0.0,ryield)
 ryield1= ma.masked_where(ryield1<=0.0,ryield1)
+ryield= ma.masked_where(ryield1<=0.0,ryield)
+ryield1= ma.masked_where(ryield<=0.0,ryield1)
 
 region=NetCDFFile('/scratch2/scratchdirs/tslin2/plot/globalcrop/data/clm/HistoricalGLM_crop_150901.nc','r')
 ma1 = region.variables['rice'][96:103,:,:]
@@ -69,12 +77,12 @@ ncvar_p=N.flipud(ncvar_p)
 lon,lat = N.meshgrid(lonmask,latmask)
 lon1,lat1 = N.meshgrid(lonnc,lat_new)
 
-yield_m31 = interp(ncvar_m,lonnc,lat_new,lon,lat,order=1)
+#yield_m31 = interp(ncvar_m,lonnc,lat_new,lon,lat,order=1)
 
-yield_m31= ma.masked_where(yield_m31[:,:]<=0.0,yield_m31)
+#yield_m31= ma.masked_where(yield_m31[:,:]<=0.0,yield_m31)
 
-yield_y = interp(ncvar_y,lonnc,lat_new,lon,lat,order=1)
-yield_y= ma.masked_where(yield_y[:,:]<=0.0,yield_y)
+#yield_y = interp(ncvar_y,lonnc,lat_new,lon,lat,order=1)
+#yield_y= ma.masked_where(yield_y[:,:]<=0.0,yield_y)
 
 m3newy=N.zeros((360,720))
 m3newp=N.zeros((360,720))
@@ -82,55 +90,65 @@ m3newa=N.zeros((360,720))
 m3newm=N.zeros((360,720))
 
 
-for x in range(0,360):
-    for y in range(0,720):
-        a1=x*6
-        a2=(x+1)*6
-        b1=y*6
-        b2=(y+1)*6
-        for j in range(a1,a2):
-            for i in range(b1,b2):
-                m3newm[x,y]=ncvar_m[j,i]+m3newm[x,y]
-                m3newy[x,y]=ncvar_y[j,i]+m3newy[x,y]
-                m3newa[x,y]=ncvar_a[j,i]+m3newa[x,y]
-                m3newp[x,y]=ncvar_p[j,i]+m3newp[x,y]
+#for x in range(0,360):
+#    for y in range(0,720):
+#        a1=x*6
+#        a2=(x+1)*6
+#        b1=y*6
+#        b2=(y+1)*6
+#        for j in range(a1,a2):
+#            for i in range(b1,b2):
+#                m3newm[x,y]=ncvar_m[j,i]+m3newm[x,y]
+#                m3newy[x,y]=ncvar_y[j,i]+m3newy[x,y]
+#                m3newa[x,y]=ncvar_a[j,i]+m3newa[x,y]
+#                m3newp[x,y]=ncvar_p[j,i]+m3newp[x,y]
+#
+#        m3newm[x,y]=m3newm[x,y]/36
+#        m3newy[x,y]=m3newy[x,y]/36
 
-        m3newm[x,y]=m3newm[x,y]/36
-        m3newy[x,y]=m3newy[x,y]/36
+#m3newm= ma.masked_where(m3newm[:,:]<=0.0,m3newm)
+#m3newy= ma.masked_where(m3newy[:,:]<=0.0,m3newy)
+#m3newa= ma.masked_where(m3newa[:,:]<=0.0,m3newa)
+#m3newp= ma.masked_where(m3newp[:,:]<=0.0,m3newp)
+cmap = plt.cm.jet
+bounds=[-0.1,0.0,0.1,0.2,0.3,0.4,0.5,0.6]
+#bounds=[-0.1,0.0,0.1,0.2]
+norm2 = colors.BoundaryNorm(bounds, cmap.N)
 
-m3newm= ma.masked_where(m3newm[:,:]<=0.0,m3newm)
-m3newy= ma.masked_where(m3newy[:,:]<=0.0,m3newy)
-m3newa= ma.masked_where(m3newa[:,:]<=0.0,m3newa)
-m3newp= ma.masked_where(m3newp[:,:]<=0.0,m3newp)
-        
-fig = plt.figure(figsize=(10,20))
+bounds1=[-0.1,0.0,0.01,0.1,0.25,0.5,0.75,1,1.25,1.5,1.75,2]
+norm1 = colors.BoundaryNorm(bounds1, cmap.N)
+
+
+ 
+fig = plt.figure(figsize=(12,12))
 
 
 ax1 = fig.add_subplot(321)
 #ax1.set_title("M3",fontsize=20)
 #map = Basemap(projection ='cyl', llcrnrlat=-62, urcrnrlat=90,llcrnrlon=-180, urcrnrlon=180, resolution='c')
 #map = Basemap(projection ='cyl', llcrnrlat=-12, urcrnrlat=55,llcrnrlon=60, urcrnrlon=155, resolution='c')
-map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+#map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+map = Basemap(projection ='cyl', llcrnrlat=-15, urcrnrlat=40,llcrnrlon=55, urcrnrlon=145, resolution='c')
 
 x,y = map(lon,lat)
 
 map.drawcoastlines()
 map.drawcountries()
 map.drawmapboundary()
-m3newp=maskoceans(x,y,m3newp)
-gg=m3newp/m3newa
-gg= ma.masked_where(gg[:,:]<=0.0,gg)
-ryield= ma.masked_where(ryield[:,:]<=0.0,ryield)
-ryield= ma.masked_where(gg[:,:]<=0.0,ryield)
-gg= ma.masked_where(ryield<=0.0,gg)
-ryield= ma.masked_where(gg[:,:]<=0.0,ryield)
-gg= ma.masked_where(ryield<=0.0,gg)
+#m3newp=maskoceans(x,y,m3newp)
+#gg=m3newp/m3newa
+#gg= ma.masked_where(gg[:,:]<=0.0,gg)
+ryield= ma.masked_where(ryield<=0.0,ryield)
+ryield1= ma.masked_where(ryield1<=0.0,ryield1)
+#gg= ma.masked_where(ryield<=0.0,gg)
+#ryield= ma.masked_where(gg[:,:]<=0.0,ryield)
+#gg= ma.masked_where(ryield<=0.0,gg)
 
-ryield= ma.masked_where(ind<=0.0,ryield)
-gg= ma.masked_where(ind<=0.0,gg)
+ryield= ma.masked_where(ind!=8.0,ryield)
+ryield1= ma.masked_where(ind!=8.0,ryield1)
 
 
-cs1 = map.pcolormesh(x,y,ryield*gridarea/10000/mearea,cmap=plt.cm.jet,vmin=0,vmax=8)
+cs1 = map.pcolormesh(x,y,ryield*gridarea/10000/mearea,cmap=cmap,vmin=0,vmax=8)
 plt.axis('off')
 #cbar = map.colorbar(cs1,location='bottom',size="5%",pad="2%")
 #cbar.ax.tick_params(labelsize=18)
@@ -139,35 +157,43 @@ ax1 = fig.add_subplot(322)
 #ax1.set_title("ISAM",fontsize=20)
 #map = Basemap(projection ='cyl', llcrnrlat=-62, urcrnrlat=90,llcrnrlon=-180, urcrnrlon=180, resolution='c')
 #map = Basemap(projection ='cyl', llcrnrlat=-12, urcrnrlat=55,llcrnrlon=60, urcrnrlon=155, resolution='c')
-map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+#map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+map = Basemap(projection ='cyl', llcrnrlat=-15, urcrnrlat=40,llcrnrlon=55, urcrnrlon=145, resolution='c')
 
 map.drawcoastlines()
 map.drawcountries()
 map.drawmapboundary()
 ncvar_y=maskoceans(x,y,ryield)
-cs1 = map.pcolormesh(x,y,ryield1*gridarea/10000/mearea,cmap=plt.cm.jet,vmin=0,vmax=8)
+cs1 = map.pcolormesh(x,y,ryield1*gridarea/10000/mearea,cmap=cmap,vmin=0,vmax=8)
 plt.axis('off')
 cbar = map.colorbar(cs1,location='right',size="5%",pad="2%")
-cbar.ax.tick_params(labelsize=18)
+cbar.ax.tick_params(labelsize=16)
 
 
 ax1 = fig.add_subplot(323)
 #ax1.set_title("M3",fontsize=20)
 #map = Basemap(projection ='cyl', llcrnrlat=-62, urcrnrlat=90,llcrnrlon=-180, urcrnrlon=180, resolution='c')
 #map = Basemap(projection ='cyl', llcrnrlat=-12, urcrnrlat=55,llcrnrlon=60, urcrnrlon=155, resolution='c')
-map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+#map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+map = Basemap(projection ='cyl', llcrnrlat=-15, urcrnrlat=40,llcrnrlon=55, urcrnrlon=145, resolution='c')
 
 x,y = map(lon,lat)
 
 map.drawcoastlines()
 map.drawcountries()
 map.drawmapboundary()
-m3newp=maskoceans(x,y,m3newp)
-gg=m3newp/m3newa
-gg= ma.masked_where(gg[:,:]<=0.0,gg)
-m3newa= ma.masked_where(ryield<=0.0,m3newa)
+#m3newp=maskoceans(x,y,m3newp)
+#gg=m3newp/m3newa
+#gg= ma.masked_where(gg<=0.0,gg)
+#gg= ma.masked_where(ind!=0.0,gg)
+#m3newa= ma.masked_where(ryield<=0.0,m3newa)
+a1=ryield*gridarea/10000
+#cs1 = map.pcolormesh(x,y,a1,cmap=cmap,norm=colors.PowerNorm(gamma=1./2.))
 
-cs1 = map.pcolormesh(x,y,ryield*gridarea/10000,cmap=plt.cm.jet,vmin=0,vmax=200000)
+#cs1 = map.pcolormesh(x,y,a1/(10**6),cmap=cmap,norm=colors.LogNorm(vmin=a1.min(), vmax=a1.max()))
+#cs1 = map.pcolormesh(x,y,ryield*gridarea/10000/(10**6),cmap=cmap,norm=norm2)
+cs1 = map.pcolormesh(x,y,ryield*gridarea/10000/(10**6),cmap=cmap,norm=colors.PowerNorm(gamma=1./2.),vmin=0,vmax=0.6)
+
 plt.axis('off')
 #cbar = map.colorbar(cs1,location='bottom',size="5%",pad="2%")
 #cbar.ax.tick_params(labelsize=18)
@@ -176,32 +202,40 @@ ax1 = fig.add_subplot(324)
 #ax1.set_title("ISAM",fontsize=20)
 #map = Basemap(projection ='cyl', llcrnrlat=-62, urcrnrlat=90,llcrnrlon=-180, urcrnrlon=180, resolution='c')
 #map = Basemap(projection ='cyl', llcrnrlat=-12, urcrnrlat=55,llcrnrlon=60, urcrnrlon=155, resolution='c')
-map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+#map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+map = Basemap(projection ='cyl', llcrnrlat=-15, urcrnrlat=40,llcrnrlon=55, urcrnrlon=145, resolution='c')
 
-ryield= ma.masked_where(ryield[:,:]<=0.0,ryield)
-ryield= ma.masked_where(gg[:,:]<=0.0,ryield)
+ryield= ma.masked_where(ryield<=0.0,ryield)
+#ryield= ma.masked_where(gg<=0.0,ryield)
 
 map.drawcoastlines()
 map.drawcountries()
 map.drawmapboundary()
-ncvar_y=maskoceans(x,y,ryield)
-cs1 = map.pcolormesh(x,y,ryield1*gridarea/10000,cmap=plt.cm.jet,vmin=0,vmax=200000)
+#cs1 = map.pcolormesh(x,y,ryield1*gridarea/10000,cmap=cmap,norm=colors.PowerNorm(gamma=1./2.))
+
+#cs1 = map.pcolormesh(x,y,ryield1*gridarea/10000/(10**6),cmap=cmap,norm=colors.LogNorm(vmin=a1.min(), vmax=a1.max()))
+cs1 = map.pcolormesh(x,y,ryield1*gridarea/10000/(10**6),cmap=cmap,norm=colors.PowerNorm(gamma=1./2.),vmin=0,vmax=0.6)
+
+#cs1 = map.pcolormesh(x,y,ryield1*gridarea/10000/(10**6),cmap=cmap,norm=norm2)
 plt.axis('off')
-cbar = map.colorbar(cs1,location='right',size="5%",pad="2%")
-cbar.ax.tick_params(labelsize=18)
+#cbar = map.colorbar(cs1,location='right',size="5%",pad="2%",ticks=bounds,extend='max')
+cbar = map.colorbar(cs1,location='right',size="5%",pad="2%",ticks=[0,0.1,0.2,0.3,0.4,0.5,0.6])
+
+cbar.ax.tick_params(labelsize=16)
 
 
 ax1 = fig.add_subplot(325)
 #ax1.set_title("M3",fontsize=20)
 #map = Basemap(projection ='cyl', llcrnrlat=-62, urcrnrlat=90,llcrnrlon=-180, urcrnrlon=180, resolution='c')
 #map = Basemap(projection ='cyl', llcrnrlat=-12, urcrnrlat=55,llcrnrlon=60, urcrnrlon=155, resolution='c')
-map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+#map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+map = Basemap(projection ='cyl', llcrnrlat=-15, urcrnrlat=40,llcrnrlon=55, urcrnrlon=145, resolution='c')
 
 map.drawcoastlines()
 map.drawcountries()
 map.drawmapboundary()
 
-cs1 = map.pcolormesh(x,y,ryield,cmap=plt.cm.jet,vmin=0,vmax=2)
+cs1 = map.pcolormesh(x,y,ryield,cmap=cmap,norm=norm1)
 plt.axis('off')
 #cbar = map.colorbar(cs1,location='bottom',size="5%",pad="2%")
 #cbar.ax.tick_params(labelsize=18)
@@ -209,18 +243,19 @@ plt.axis('off')
 ax1 = fig.add_subplot(326)
 #ax1.set_title("ISAM",fontsize=20)
 #map = Basemap(projection ='cyl', llcrnrlat=-12, urcrnrlat=55,llcrnrlon=60, urcrnrlon=155, resolution='c')
-map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+#map = Basemap(projection ='cyl', llcrnrlat=5, urcrnrlat=35,llcrnrlon=66, urcrnrlon=100, resolution='c')
+map = Basemap(projection ='cyl', llcrnrlat=-15, urcrnrlat=40,llcrnrlon=55, urcrnrlon=145, resolution='c')
 
 map.drawcoastlines()
 map.drawcountries()
 map.drawmapboundary()
 
-cs1 = map.pcolormesh(x,y,ryield1,cmap=plt.cm.jet,vmin=0,vmax=2)
+cs1 = map.pcolormesh(x,y,ryield1,cmap=cmap,norm=norm1)
 plt.axis('off')
-cbar = map.colorbar(cs1,location='right',size="5%",pad="2%")
-cbar.ax.tick_params(labelsize=18)
+cbar = map.colorbar(cs1,location='right',size="5%",pad="2%",ticks=bounds1,extend='max')
+cbar.ax.tick_params(labelsize=16)
 
-plt.savefig('isam_rice_eguornl_m3test.jpg',bbox_inches='tight')
+plt.savefig('isam_rice_eguornl_m3testssa3.jpg',bbox_inches='tight')
 
 plt.show()
 
